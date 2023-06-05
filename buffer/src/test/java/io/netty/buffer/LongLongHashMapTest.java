@@ -27,6 +27,14 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class LongLongHashMapTest {
+
+    @Test
+    public void xx(){
+        LongLongHashMap actual = new LongLongHashMap(-1);
+        actual.put(5750,1);
+        actual.put(5554,2);
+
+    }
     @Test
     public void zeroPutGetAndRemove() {
         LongLongHashMap map = new LongLongHashMap(-1);
@@ -59,7 +67,7 @@ class LongLongHashMapTest {
 
     @Test
     public void randomOperations() {
-        int operations = 6000;
+        int operations = 600000;
         ThreadLocalRandom tlr = ThreadLocalRandom.current();
         Map<Long, Long> expected = new HashMap<Long, Long>();
         LongLongHashMap actual = new LongLongHashMap(-1);

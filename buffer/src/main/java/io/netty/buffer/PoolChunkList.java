@@ -69,6 +69,7 @@ final class PoolChunkList<T> implements PoolChunkListMetric {
         //
         freeMinThreshold = (maxUsage == 100) ? 0 : (int) (chunkSize * (100.0 - maxUsage + 0.99999999) / 100L);
         freeMaxThreshold = (minUsage == 100) ? 0 : (int) (chunkSize * (100.0 - minUsage + 0.99999999) / 100L);
+        int i =1;
     }
 
     /**

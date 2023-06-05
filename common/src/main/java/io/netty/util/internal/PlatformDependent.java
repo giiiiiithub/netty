@@ -1642,4 +1642,9 @@ public final class PlatformDependent {
     private PlatformDependent() {
         // only static method supported
     }
+
+    public static void main(String[] args) {
+        long align = Pow2.align(3, 2);
+        System.out.println();
+    }
 }

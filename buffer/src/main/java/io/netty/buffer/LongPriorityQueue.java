@@ -20,6 +20,14 @@ import java.util.Arrays;
 /**
  * Internal primitive priority queue, used by {@link PoolChunk}.
  * The implementation is based on the binary heap, as described in Algorithms by Sedgewick and Wayne.
+ *
+ * 最小堆，按hander大小比较，handler: offset_pageNum_isUsed_isSubpage_bitmapIdx
+ *
+ * 队列里存了很多个可用的 run
+ * 这个队列和page量级相关，
+ *
+ * 假如一个run需要10个page
+ *
  */
 final class LongPriorityQueue {
     public static final int NO_VALUE = -1;
@@ -75,8 +83,14 @@ final class LongPriorityQueue {
 
     private void lift(int index) {
         int parentIndex;
+
+        // 父大于子
         while (index > 1 && subord(parentIndex = index >> 1, index)) {
+
+            //交换父子
             swap(index, parentIndex);
+
+            //index=父
             index = parentIndex;
         }
     }

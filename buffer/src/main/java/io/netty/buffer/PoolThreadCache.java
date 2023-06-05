@@ -141,6 +141,7 @@ final class PoolThreadCache {
     }
 
     // val > 0
+    // 31-前导零的个数（最高位1在第几位）
     static int log2(int val) {
         return INTEGER_SIZE_MINUS_ONE - Integer.numberOfLeadingZeros(val);
     }

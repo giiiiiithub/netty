@@ -102,8 +102,13 @@ public abstract class Recycler<T> {
         }
     }
 
+    //4096
     private final int maxCapacityPerThread;
+
+    //ratio 8
     private final int interval;
+
+    //32
     private final int chunkSize;
     private final FastThreadLocal<LocalPool<T>> threadLocal = new FastThreadLocal<LocalPool<T>>() {
         @Override

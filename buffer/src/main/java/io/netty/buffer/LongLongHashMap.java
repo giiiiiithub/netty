@@ -43,14 +43,18 @@ final class LongLongHashMap {
             return prev;
         }
 
-        for (;;) {
+        for (; ; ) {
+            //mask 会随着扩容而变化，导致同一个key可能会计算出两个index.
             int index = index(key);
             for (int i = 0; i < maxProbe; i++) {
                 long existing = array[index];
                 if (existing == key || existing == 0) {
+                    //为该key占用该2个index
                     long prev = existing == 0? emptyVal : array[index + 1];
                     array[index] = key;
                     array[index + 1] = value;
+
+                    ///mask 会随着扩容而变化，导致同一个key可能会计算出两个index，找出之前写的值是多少,并将key index置为0, value index不用管
                     for (; i < maxProbe; i++) { // Nerf any existing misplaced entries.
                         index = index + 2 & mask;
                         if (array[index] == key) {
@@ -61,6 +65,8 @@ final class LongLongHashMap {
                     }
                     return prev;
                 }
+
+                //两个key，计算得到了同一个index，继续下一个
                 index = index + 2 & mask;
             }
             expand(); // Grow array and re-hash.
@@ -105,9 +111,13 @@ final class LongLongHashMap {
         key ^= key >>> 33;
         key *= 0xc4ceb9fe1a85ec53L;
         key ^= key >>> 33;
-        return (int) key & mask;
+        int s = (int) key & mask;
+        return s;
     }
 
+    /**
+     * 数组扩容*2, length=power of 2, 数组起始长度:32
+     */
     private void expand() {
         long[] prev = array;
         array = new long[prev.length * 2];

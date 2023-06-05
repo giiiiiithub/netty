@@ -160,6 +160,11 @@ public class LoggingHandler extends ChannelDuplexHandler {
         internalLevel = level.toInternalLevel();
     }
 
+    @Override
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        super.handlerAdded(ctx);
+    }
+
     /**
      * Returns the {@link LogLevel} that this handler uses to log
      */

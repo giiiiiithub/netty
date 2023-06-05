@@ -24,6 +24,12 @@ import static io.netty.buffer.PoolChunk.IS_USED_SHIFT;
 import static io.netty.buffer.PoolChunk.IS_SUBPAGE_SHIFT;
 import static io.netty.buffer.SizeClasses.LOG2_QUANTUM;
 
+/**
+ * 能分配 64*elementNum次 run
+ *
+ *
+ * @param <T>
+ */
 final class PoolSubpage<T> implements PoolSubpageMetric {
 
     final PoolChunk<T> chunk;
@@ -47,7 +53,9 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
     // TODO: Test if adding padding helps under contention
     //private long pad0, pad1, pad2, pad3, pad4, pad5, pad6, pad7;
 
-    /** Special constructor that creates a linked list head */
+    /**
+     * Special constructor that creates a linked list head
+     */
     PoolSubpage() {
         chunk = null;
         pageShifts = -1;
@@ -71,9 +79,10 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
             nextAvail = 0;
             bitmapLength = maxNumElems >>> 6;
             if ((maxNumElems & 63) != 0) {
-                bitmapLength ++;
+                bitmapLength++;
             }
         }
+
         addToPool(head);
     }
 
@@ -89,15 +98,15 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         if (bitmapIdx < 0) {
             removeFromPool(); // Subpage appear to be in an invalid state. Remove to prevent repeated errors.
             throw new AssertionError("No next available bitmap index found (bitmapIdx = " + bitmapIdx + "), " +
-                    "even though there are supposed to be (numAvail = " + numAvail + ") " +
-                    "out of (maxNumElems = " + maxNumElems + ") available indexes.");
+                                     "even though there are supposed to be (numAvail = " + numAvail + ") " +
+                                     "out of (maxNumElems = " + maxNumElems + ") available indexes.");
         }
         int q = bitmapIdx >>> 6;
         int r = bitmapIdx & 63;
         assert (bitmap[q] >>> r & 1) == 0;
         bitmap[q] |= 1L << r;
 
-        if (-- numAvail == 0) {
+        if (--numAvail == 0) {
             removeFromPool();
         }
 
@@ -106,7 +115,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
 
     /**
      * @return {@code true} if this subpage is in use.
-     *         {@code false} if this subpage is not used by its chunk and thus it's OK to be released.
+     * {@code false} if this subpage is not used by its chunk and thus it's OK to be released.
      */
     boolean free(PoolSubpage<T> head, int bitmapIdx) {
         if (elemSize == 0) {
@@ -119,7 +128,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
 
         setNextAvail(bitmapIdx);
 
-        if (numAvail ++ == 0) {
+        if (numAvail++ == 0) {
             addToPool(head);
             /* When maxNumElems == 1, the maximum numAvail is also 1.
              * Each of these PoolSubpages will go in here when they do free operation.
@@ -178,9 +187,9 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
     private int findNextAvail() {
         final long[] bitmap = this.bitmap;
         final int bitmapLength = this.bitmapLength;
-        for (int i = 0; i < bitmapLength; i ++) {
+        for (int i = 0; i < bitmapLength; i++) {
             long bits = bitmap[i];
-            if (~bits != 0) {
+            if (~bits != 0) { //取反前至少有一位是0，
                 return findNextAvail0(i, bits);
             }
         }
@@ -191,7 +200,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         final int maxNumElems = this.maxNumElems;
         final int baseVal = i << 6;
 
-        for (int j = 0; j < 64; j ++) {
+        for (int j = 0; j < 64; j++) {
             if ((bits & 1) == 0) {
                 int val = baseVal | j;
                 if (val < maxNumElems) {
@@ -249,7 +258,7 @@ final class PoolSubpage<T> implements PoolSubpageMetric {
         }
 
         return "(" + runOffset + ": " + (maxNumElems - numAvail) + '/' + maxNumElems +
-                ", offset: " + runOffset + ", length: " + runSize + ", elemSize: " + elemSize + ')';
+               ", offset: " + runOffset + ", length: " + runSize + ", elemSize: " + elemSize + ')';
     }
 
     @Override

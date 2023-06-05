@@ -42,7 +42,7 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
 
     final int numSmallSubpagePools;
     final int directMemoryCacheAlignment;
-    private final PoolSubpage<T>[] smallSubpagePools;
+    private final PoolSubpage<T>[] smallSubpageHeadPools;
 
     private final PoolChunkList<T> q050;
     private final PoolChunkList<T> q025;
@@ -81,9 +81,9 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
         directMemoryCacheAlignment = cacheAlignment;
 
         numSmallSubpagePools = nSubpages;
-        smallSubpagePools = newSubpagePoolArray(numSmallSubpagePools);
-        for (int i = 0; i < smallSubpagePools.length; i ++) {
-            smallSubpagePools[i] = newSubpagePoolHead();
+        smallSubpageHeadPools = newSubpagePoolArray(numSmallSubpagePools);
+        for (int i = 0; i < smallSubpageHeadPools.length; i ++) {
+            smallSubpageHeadPools[i] = newSubpagePoolHead();
         }
 
         q100 = new PoolChunkList<T>(this, null, 100, Integer.MAX_VALUE, chunkSize);
@@ -280,7 +280,7 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
     }
 
     PoolSubpage<T> findSubpagePoolHead(int sizeIdx) {
-        return smallSubpagePools[sizeIdx];
+        return smallSubpageHeadPools[sizeIdx];
     }
 
     void reallocate(PooledByteBuf<T> buf, int newCapacity, boolean freeOldMemory) {
@@ -325,7 +325,7 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
 
     @Override
     public int numSmallSubpages() {
-        return smallSubpagePools.length;
+        return smallSubpageHeadPools.length;
     }
 
     @Override
@@ -340,7 +340,7 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
 
     @Override
     public List<PoolSubpageMetric> smallSubpages() {
-        return subPageMetricList(smallSubpagePools);
+        return subPageMetricList(smallSubpageHeadPools);
     }
 
     @Override
@@ -556,7 +556,7 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
                     .append(q100)
                     .append(StringUtil.NEWLINE)
                     .append("small subpages:");
-            appendPoolSubPages(buf, smallSubpagePools);
+            appendPoolSubPages(buf, smallSubpageHeadPools);
             buf.append(StringUtil.NEWLINE);
             return buf.toString();
         } finally {
@@ -590,7 +590,7 @@ abstract class PoolArena<T> extends SizeClasses implements PoolArenaMetric {
         try {
             super.finalize();
         } finally {
-            destroyPoolSubPages(smallSubpagePools);
+            destroyPoolSubPages(smallSubpageHeadPools);
             destroyPoolChunkLists(qInit, q000, q025, q050, q075, q100);
         }
     }

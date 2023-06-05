@@ -335,13 +335,32 @@ final class PoolChunk<T> implements PoolChunkMetric {
         return true;
     }
 
+    /**
+     * 根据runSize拿到合适的pageIdx
+     * 根据pageIdx拿到对应的queue
+     * 从queue中取出第一个handler, 对handler进行分裂。
+     * 从该handler取出其pages，分裂成2部分：
+     * 1. 该handler offset, need pages,  这个handler被认为是不可用
+     * 2. handler offset+need pages, rem pages  这个handler被认为是可用。将其写入合适的队列
+     *
+     * 对该chunk可用空间，减去runSize
+     *
+     *
+     * 根据runSize计算出需要多少个page
+     * 从runsAvail里取出合适的LongPriorityQueue （LongPriorityQueue是N*page)
+     * @param runSize
+     * @return
+     */
     private long allocateRun(int runSize) {
         int pages = runSize >> pageShifts;
+
+        //pages2pageIdx page的整数倍
         int pageIdx = arena.pages2pageIdx(pages);
 
         runsAvailLock.lock();
         try {
             //find first queue which has at least one big enough run
+            //当这个chunk还没有用最高的，或者从pageIdx开始 queue是空的
             int queueIdx = runFirstBestFit(pageIdx);
             if (queueIdx == -1) {
                 return -1;
@@ -355,10 +374,13 @@ final class PoolChunk<T> implements PoolChunkMetric {
 
             removeAvailRun0(handle);
 
+            //分裂这个run, 分成两个：可用和不可用, 返回的是不可用的
+            //给可用的找到和是的queue，再写入进去
             if (handle != -1) {
                 handle = splitLargeRun(handle, pages);
             }
 
+            //
             int pinnedSize = runSize(pageShifts, handle);
             freeBytes -= pinnedSize;
             return handle;
